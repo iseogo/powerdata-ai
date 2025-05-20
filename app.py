@@ -14,8 +14,8 @@ st.success("Ready! Choose your task below.")
 # Text or Voice Input Box
 
 # ✅ Updated OpenAI ChatCompletion block
-import openai
-openai.api_key = st.secrets["OPENAI_API_KEY"]
+from openai import OpenAI
+client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
 user_prompt = st.text_input("Ask something about your data (type or speak):", "What does the data say about sales?")
 if user_prompt:
@@ -23,14 +23,14 @@ if user_prompt:
         st.session_state.qa_history = []
     try:
         with st.spinner("Generating AI response..."):
-            response = openai.ChatCompletion.create(
+            response = client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[
                     {"role": "system", "content": "You are a helpful data analyst. If a dataset is uploaded, use it to answer the user's request."},
                     {"role": "user", "content": f"{user_prompt}\n\nHere is a sample of the uploaded data:\n{df.head(10).to_string(index=False) if 'df' in locals() else 'No dataset uploaded.'}"}
                 ]
             )
-            reply = response.choices[0].message.content
+            reply = response.choices[0].message.content if response.choices else 'No response received.'
             st.session_state.qa_history.append((user_prompt, reply))
             st.markdown(f"**AI Response:**\n{reply}")
     except Exception as e:
