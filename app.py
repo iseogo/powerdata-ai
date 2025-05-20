@@ -27,8 +27,8 @@ if user_prompt:
                 model="gpt-3.5-turbo",
                 messages=[
                     {"role": "system", "content": "You are a helpful data analyst. If a dataset is uploaded, use it to answer the user's request."},
-                    {"role": "user", "content": f"{user_prompt}
-
+                  {"role": "user", "content": f"{user_prompt}
+                   
 Here is a sample of the uploaded data:
 {df.head(10).to_string(index=False) if 'df' in locals() else 'No dataset uploaded.'}"}
                 ]
@@ -44,7 +44,7 @@ Here is a sample of the uploaded data:
     else:
         csv_data = df.to_csv(index=False).encode('utf-8')
         st.download_button("📥 Download Your Uploaded Dataset", csv_data, file_name="uploaded_dataset.csv")
-{reply}")
+
 st.markdown("## 🧾 Conversation History")
 if "qa_history" in st.session_state:
     for i, (q, a) in enumerate(st.session_state.qa_history, 1):
