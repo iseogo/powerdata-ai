@@ -11,6 +11,50 @@ with st.spinner("Loading your AI workspace..."):
 
 st.success("Ready! Choose your task below.")
 
+# ✅ Inject sample sales + iris data if none uploaded
+import pandas as pd
+if 'df' not in globals():
+    df = pd.DataFrame({
+        "Date": pd.date_range(start="2023-01-01", periods=10, freq="M"),
+        "Region": ["North", "South", "East", "West"] * 2 + ["North", "South"],
+        "Product": ["A", "B", "C", "D"] * 2 + ["A", "C"],
+        "Sales": [1200, 950, 780, 1430, 1130, 970, 810, 1540, 1180, 990]
+    })
+
+    iris_url = "https://raw.githubusercontent.com/uiuc-cse/data-fa14/gh-pages/data/iris.csv"
+    iris_df = pd.read_csv(iris_url)
+    iris_df.columns = [c.replace(" ", "_") for c in iris_df.columns]
+    iris_df["source"] = "iris_sample"
+    df = pd.concat([df, iris_df.reset_index(drop=True)], ignore_index=True, sort=False).fillna(0)
+
+st.markdown("## 🗣️ Ask Questions or Make a Request")
+st.markdown("Use the text box below, or click the microphone icon to speak.")
+
+st.markdown("""
+<script>
+function startDictation() {
+    if (window.hasOwnProperty('webkitSpeechRecognition')) {
+        var recognition = new webkitSpeechRecognition();
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        recognition.lang = "en-US";
+        recognition.start();
+
+        recognition.onresult = function(e) {
+            document.getElementById('voiceInput').value = e.results[0][0].transcript;
+            recognition.stop();
+        };
+
+        recognition.onerror = function(e) {
+            recognition.stop();
+        }
+    }
+}
+</script>
+<input id='voiceInput' name='voiceInput' placeholder='Click mic or type here...' style='width: 80%; height: 30px;'>
+<button onclick='startDictation()'>🎤</button>
+""", unsafe_allow_html=True)
+
 # Text or Voice Input Box
 
 # ✅ Updated OpenAI ChatCompletion block
