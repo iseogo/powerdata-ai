@@ -110,7 +110,11 @@ function startDictation() {
         recognition.start();
 
         recognition.onresult = function(e) {
-            document.getElementsByName('question')[0].value = e.results[0][0].transcript;
+            const input = document.querySelector('textarea');
+            if (input) {
+                input.value = e.results[0][0].transcript;
+                input.dispatchEvent(new Event('input', { bubbles: true }));
+            }
             recognition.stop();
         };
 
@@ -120,7 +124,7 @@ function startDictation() {
     }
 }
 </script>
-<button onclick="startDictation()">🎤 Click to Speak</button>
+<button onclick="startDictation()">🎤 Click to Speak</button>""", unsafe_allow_html=True)
 """, unsafe_allow_html=True)
 """, unsafe_allow_html=True)
 
