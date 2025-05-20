@@ -38,13 +38,92 @@ task = st.selectbox("Choose a task", [
     "Explore Data",
     "Summary Stats",
     "Visualization",
+    "Dashboards",
+    "Text Mining",
+    "Forecasting",
+    "Time Series",
+    "Descriptive Statistics",
+    "Supervised Learning",
+    "Unsupervised Learning",
+    "Semi-Supervised Learning",
+    "Reinforcement Learning",
     "Machine Learning"
 ])
+
+# ✅ Automated data cleaning
+if st.checkbox("🧹 Auto-clean the dataset"):
+    df_clean = st.session_state.df.copy()
+
+    # 1. Standardize column names
+    df_clean.columns = [c.strip().replace(" ", "_").lower() for c in df_clean.columns]
+
+    # 2. Remove duplicates
+    df_clean = df_clean.drop_duplicates()
+
+    # 3. Fill missing values
+    if df_clean.isnull().sum().sum() > 0:
+        df_clean = df_clean.fillna(df_clean.mode().iloc[0])
+
+    # 4. Convert date columns
+    for col in df_clean.columns:
+        if df_clean[col].dtype == 'object':
+            try:
+                df_clean[col] = pd.to_datetime(df_clean[col])
+            except:
+                continue
+
+    # 5. Trim whitespace in object columns
+    for col in df_clean.select_dtypes(include='object').columns:
+        df_clean[col] = df_clean[col].str.strip()
+
+    # 6. Drop constant columns
+    nunique = df_clean.nunique()
+    const_cols = nunique[nunique == 1].index
+    df_clean.drop(columns=const_cols, inplace=True)
+
+    # 7. (Optional) Replace invalid datatypes if needed (basic)
+    for col in df_clean.columns:
+        if df_clean[col].dtype == 'object':
+            try:
+                df_clean[col] = df_clean[col].astype(float)
+            except:
+                continue
+
+    st.session_state.df = df_clean
+    st.success("✅ Full cleaning complete: renamed cols, removed dups, filled nulls, trimmed, converted, dropped constants")
 
 # ✅ Task handlers
 if task == "AI Chat with Data":
     st.markdown("## 💬 Ask Questions About Your Data")
-    user_prompt = st.text_input("Ask something about your data:", "What does the data say about sales?")
+    st.markdown("Enter your question below or use the mic if supported (Chrome desktop only):")
+
+# Text box for user input
+user_prompt = st.text_area("Type your question here:", "What does the data say about sales?", height=80)
+
+# Optional voice button (for browsers that support it)
+st.markdown("""
+<script>
+function startDictation() {
+    if (window.hasOwnProperty('webkitSpeechRecognition')) {
+        var recognition = new webkitSpeechRecognition();
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        recognition.lang = "en-US";
+        recognition.start();
+
+        recognition.onresult = function(e) {
+            document.getElementsByName('question')[0].value = e.results[0][0].transcript;
+            recognition.stop();
+        };
+
+        recognition.onerror = function(e) {
+            recognition.stop();
+        }
+    }
+}
+</script>
+<button onclick="startDictation()">🎤 Click to Speak</button>
+""", unsafe_allow_html=True)
 
     if user_prompt:
         client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
@@ -85,5 +164,51 @@ elif task == "Visualization":
     else:
         st.area_chart(st.session_state.df[[x_axis, y_axis]])
 
+elif task == "Dashboards":
+    st.write("## 📊 Interactive Dashboard")
+    st.dataframe(st.session_state.df.head())
+    col1, col2 = st.columns(2)
+    with col1:
+        st.line_chart(st.session_state.df.select_dtypes("number"))
+    with col2:
+        st.bar_chart(st.session_state.df.select_dtypes("number"))
+
+elif task == "Text Mining":
+    st.write("## 🧠 Text Mining")
+    if 'text' in st.session_state.df.columns:
+        st.text_area("Sample Text Column", value='
+'.join(st.session_state.df['text'].astype(str).head()), height=150)
+    else:
+        st.info("No 'text' column found in dataset.")
+
+elif task == "Forecasting":
+    st.write("## 🔮 Forecasting")
+    st.line_chart(st.session_state.df.select_dtypes("number"))
+
+elif task == "Time Series":
+    st.write("## ⏱️ Time Series Analysis")
+    st.line_chart(st.session_state.df.select_dtypes("number"))
+
+elif task == "Descriptive Statistics":
+    st.write("## 📌 Descriptive Statistics")
+    st.dataframe(st.session_state.df.describe())
+
+elif task == "Supervised Learning":
+    st.write("## 🎯 Supervised Learning")
+    st.code("Train/test split, classification or regression model setup goes here")
+
+elif task == "Unsupervised Learning":
+    st.write("## 🧩 Unsupervised Learning")
+    st.code("Clustering, PCA, and dimensionality reduction here")
+
+elif task == "Semi-Supervised Learning":
+    st.write("## 🧠 Semi-Supervised Learning")
+    st.code("Label propagation or self-training logic here")
+
+elif task == "Reinforcement Learning":
+    st.write("## 🕹️ Reinforcement Learning")
+    st.code("Simulation environment, rewards, and feedback loop logic here")
+
 elif task == "Machine Learning":
-    st.write("## 🤖 ML Module (coming soon)")
+    st.write("## 🤖 ML Module")
+    st.write("Combine supervised and unsupervised model workflows here.")
