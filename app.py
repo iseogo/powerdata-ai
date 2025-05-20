@@ -94,8 +94,59 @@ if st.checkbox("🧹 Auto-clean the dataset"):
 
 # ✅ Task handlers
 if task == "AI Chat with Data":
-    st.markdown("## 💬 Ask Questions About Your Data")
-    st.markdown("Enter your question below or use the mic if supported (Chrome desktop only):")
+    st.markdown("## 💬 AI Chat Sidebar")
+    col1, col2 = st.columns([1, 3])
+
+    with col1:
+        st.markdown("### 💭 Prompt")
+        user_prompt = st.text_area("Type or speak a question:", "What does the data say about sales?", height=100)
+        st.markdown("""
+        <script>
+        function startDictation() {
+            if (window.hasOwnProperty('webkitSpeechRecognition')) {
+                var recognition = new webkitSpeechRecognition();
+                recognition.continuous = false;
+                recognition.interimResults = false;
+                recognition.lang = "en-US";
+                recognition.start();
+                recognition.onresult = function(e) {
+                    const input = document.querySelector('textarea');
+                    if (input) {
+                        input.value = e.results[0][0].transcript;
+                        input.dispatchEvent(new Event('input', { bubbles: true }));
+                    }
+                    recognition.stop();
+                };
+                recognition.onerror = function(e) {
+                    recognition.stop();
+                }
+            }
+        }
+        </script>
+        <button onclick="startDictation()">🎤 Speak</button>
+        """, unsafe_allow_html=True)
+
+    with col2:
+        st.markdown("### 🧠 AI Response")
+        if user_prompt:
+            client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+            try:
+                with st.spinner("Thinking..."):
+                    response = client.chat.completions.create(
+                        model="gpt-3.5-turbo",
+                        messages=[
+                            {"role": "system", "content": "You are a helpful data analyst."},
+                            {"role": "user", "content": f"{user_prompt}
+
+Here is a sample of the uploaded data:
+{st.session_state.df.head(10).to_string(index=False)}"}
+                        ]
+                    )
+                    reply = response.choices[0].message.content
+                    st.markdown(f"**Answer:**
+{reply}")
+            except Exception as e:
+                st.error("⚠️ Error: " + str(e))
 
 user_prompt = st.text_area("Type your question here:", "What does the data say about sales?", height=80)
 
