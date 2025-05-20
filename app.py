@@ -12,6 +12,41 @@ with st.spinner("Loading your AI workspace..."):
 st.success("Ready! Choose your task below.")
 
 # Text or Voice Input Box
+
+# ✅ Updated OpenAI ChatCompletion block
+import openai
+openai.api_key = st.secrets["OPENAI_API_KEY"]
+
+user_prompt = st.text_input("Ask something about your data (type or speak):", "What does the data say about sales?")
+if user_prompt:
+    if "qa_history" not in st.session_state:
+        st.session_state.qa_history = []
+    st.session_state.qa_history.append((user_prompt, reply))
+    if 'df' not in locals():
+        st.warning("⚠️ No dataset uploaded yet. AI responses may be generic.")
+    else:
+        csv_data = df.to_csv(index=False).encode('utf-8')
+        st.download_button("📥 Download Your Uploaded Dataset", csv_data, file_name="uploaded_dataset.csv")
+    with st.spinner("Generating AI response..."):
+        response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=[
+            {"role": "system", "content": "You are a helpful data analyst. If a dataset is uploaded, use it to answer the user's request."},
+            {"role": "user", "content": f"{user_prompt}
+
+Here is a sample of the uploaded data:
+{df.head(10).to_string(index=False) if 'df' in locals() else 'No dataset uploaded.'}"}
+        ]
+    )
+        reply = response.choices[0].message.content
+        st.markdown(f"**AI Response:**
+{reply}")
+st.markdown("## 🧾 Conversation History")
+if "qa_history" in st.session_state:
+    for i, (q, a) in enumerate(st.session_state.qa_history, 1):
+        st.markdown(f"**Q{i}:** {q}")
+        st.markdown(f"**A{i}:** {a}")
+
 st.markdown("## 🗣️ Ask Questions or Make a Request")
 st.markdown("Use the text box below, or click the microphone icon to speak.")
 
@@ -371,12 +406,13 @@ elif task_selection == "Descriptive Statistics":
         st.subheader("🧮 Descriptive Statistics")
         st.caption("Upload a CSV file to view summary statistics, histograms, and correlation heatmaps.")
         stat_file = st.file_uploader("Upload data file", type="csv", key="descriptive")
-        if stat_file:
+        use_sample = st.checkbox("Or use the Iris dataset instead")
+        if stat_file or use_sample:
             import pandas as pd
             import matplotlib.pyplot as plt
             import seaborn as sns
 
-            df = pd.read_csv(stat_file)
+            df = pd.read_csv(stat_file) if stat_file else pd.read_csv("https://raw.githubusercontent.com/uiuc-cse/data-fa14/gh-pages/data/iris.csv")
             dtype_filter = st.radio("Select column type for stats:", ["All", "Numeric Only", "Categorical Only"])
             if dtype_filter == "Numeric Only":
                 df = df.select_dtypes(include=["number"])
