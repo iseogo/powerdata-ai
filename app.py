@@ -34,7 +34,7 @@ if user_prompt:
             st.session_state.qa_history.append((user_prompt, reply))
             st.markdown(f"**AI Response:**\n{reply}")
     except Exception as e:
-        st.error(f⚠️ Error: {str(e)}")
+        st.error("⚠️ Error: " + str(e))
     if 'df' not in locals():
         st.warning("⚠️ No dataset uploaded yet. AI responses may be generic.")
     else:
