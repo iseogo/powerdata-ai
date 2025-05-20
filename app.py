@@ -23,19 +23,19 @@ if user_prompt:
         st.session_state.qa_history = []
     try:
         with st.spinner("Generating AI response..."):
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": "You are a helpful data analyst. If a dataset is uploaded, use it to answer the user's request."},
-                {"role": "user", "content": f"{user_prompt}
+            response = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": "You are a helpful data analyst. If a dataset is uploaded, use it to answer the user's request."},
+                    {"role": "user", "content": f"{user_prompt}
 
 Here is a sample of the uploaded data:
 {df.head(10).to_string(index=False) if 'df' in locals() else 'No dataset uploaded.'}"}
-            ]
-        )
-        reply = response.choices[0].message.content
-        st.session_state.qa_history.append((user_prompt, reply))
-        st.markdown(f"**AI Response:**
+                ]
+            )
+            reply = response.choices[0].message.content
+            st.session_state.qa_history.append((user_prompt, reply))
+            st.markdown(f"**AI Response:**
 {reply}")
     except Exception as e:
         st.error(f"⚠️ Error: {str(e)}")
@@ -44,21 +44,6 @@ Here is a sample of the uploaded data:
     else:
         csv_data = df.to_csv(index=False).encode('utf-8')
         st.download_button("📥 Download Your Uploaded Dataset", csv_data, file_name="uploaded_dataset.csv")
-    with st.spinner("Generating AI response..."):
-        response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=[
-            {"role": "system", "content": "You are a helpful data analyst. If a dataset is uploaded, use it to answer the user's request."},
-            {"role": "user", "content": f"{user_prompt}
-
-Here is a sample of the uploaded data:
-{df.head(10).to_string(index=False) if 'df' in locals() else 'No dataset uploaded.'}"}
-        ]
-    ).to_string(index=False) if 'df' in locals() else 'No dataset uploaded.'}"}
-        ]
-    )
-        reply = response.choices[0].message.content
-        st.markdown(f"**AI Response:**
 {reply}")
 st.markdown("## 🧾 Conversation History")
 if "qa_history" in st.session_state:
