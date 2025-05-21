@@ -37,8 +37,24 @@ if st.button("📝 Generate Full Report"):
     df = st.session_state.df
     report_sections = [
         "# 📊 Powerdata.ai Automated Report",
-        f"## Shape
+        f"""## Shape
 - Rows: {df.shape[0]}
+- Columns: {df.shape[1]}""",
+        f"""## Columns
+- {', '.join(df.columns[:10])}""",
+        f"""## Sample Preview
+{df.head(5).to_markdown(index=False)}""",
+        f"""## Summary Statistics
+{df.describe(include='all').to_markdown()}"""
+    ]}
+- Columns: {df.shape[1]}",
+        f"## Columns
+- {', '.join(df.columns[:10])}",
+        f"## Sample Preview
+{df.head(5).to_markdown(index=False)}",
+        f"## Summary Statistics
+{df.describe(include='all').to_markdown()}"
+    ]}
 - Columns: {df.shape[1]}",
         f"## Columns
 - {', '.join(df.columns[:10])}",
@@ -343,37 +359,7 @@ elif task == "Unsupervised Learning":
 
         n_clusters = st.number_input("Suggested Optimal Clusters (auto-selected):", min_value=2, max_value=10, value=opt_k)
 
-opt_k = 2
-best_score = -1
-for k in range(2, 11):
-    km = KMeans(n_clusters=k, random_state=42)
-    lbls = km.fit_predict(scaled)
-    score = silhouette_score(scaled, lbls)
-    sil_scores_all.append((k, score))
-    if score > best_score:
-        opt_k = k
-        best_score = score
 
-sil_df = pd.DataFrame(sil_scores_all, columns=["k", "Silhouette Score"])
-st.line_chart(sil_df.set_index("k"))
-
-n_clusters = st.number_input("Suggested Optimal Clusters (auto-selected):", min_value=2, max_value=10, value=opt_k)
-
-        kmeans = KMeans(n_clusters=n_clusters, random_state=42)
-        labels = kmeans.fit_predict(scaled)
-
-        pca = PCA(n_components=2)
-        reduced = pca.fit_transform(scaled)
-        cluster_df = pd.DataFrame(reduced, columns=['PC1', 'PC2'])
-        cluster_df['Cluster'] = labels
-
-        sil_score = silhouette_score(scaled, labels)
-        st.write(f"Silhouette Score: {sil_score:.2f}")
-
-        st.write("### 📊 Cluster Visualization (PCA)")
-
-        
-        st.scatter_chart(cluster_df, x='PC1', y='PC2', color='Cluster')
 
 elif task == "Semi-Supervised Learning":
     st.write("## 🧠 Semi-Supervised Learning")
