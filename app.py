@@ -136,17 +136,14 @@ if task == "AI Chat with Data":
                         model="gpt-3.5-turbo",
                         messages=[
                             {"role": "system", "content": "You are a helpful data analyst."},
-                            {"role": "user", "content": f"{user_prompt}
-
-Here is a sample of the uploaded data:
-{st.session_state.df.head(10).to_string(index=False)}"}
+                            {"role": "user", "content": f"{user_prompt}\n\nHere is a sample of the uploaded data:\n{st.session_state.df.head(10).to_string(index=False)}"}
                         ]
                     )
                     reply = response.choices[0].message.content
                     st.markdown(f"**Answer:**
 {reply}")
             except Exception as e:
-                st.error("⚠️ Error: " + str(e))
+                st.error(⚠️ Error: " + str(e))
 
 user_prompt = st.text_area("Type your question here:", "What does the data say about sales?", height=80)
 
