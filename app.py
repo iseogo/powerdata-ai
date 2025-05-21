@@ -140,19 +140,16 @@ if task == "AI Chat with Data":
                         ]
                     )
                     reply = response.choices[0].message.content
-                    st.markdown(f"**Answer:**
-{reply}")
+                    st.markdown(f"**Answer:** {reply}")
             except Exception as e:
                 st.error("⚠️ Error: " + str(e))
 
 
 
 
-""", unsafe_allow_html=True)
-""", unsafe_allow_html=True)
 
 
-    st.download_button("📥 Download Sample Dataset", csv, file_name="demo_data.csv")
+    st.download_button("📥 Download Sample Dataset", st.session_state.df.to_csv(index=False).encode('utf-8'), file_name="demo_data.csv")
 
 elif task == "Explore Data":
     st.dataframe(st.session_state.df.head())
@@ -186,8 +183,7 @@ elif task == "Dashboards":
 elif task == "Text Mining":
     st.write("## 🧠 Text Mining")
     if 'text' in st.session_state.df.columns:
-        st.text_area("Sample Text Column", value='
-'.join(st.session_state.df['text'].astype(str).head()), height=150)
+        st.text_area("Sample Text Column", value='\n'.join(st.session_state.df['text'].astype(str).head().tolist()), height=150)
     else:
         st.info("No 'text' column found in dataset.")
 
