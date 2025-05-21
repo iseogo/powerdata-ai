@@ -32,6 +32,57 @@ if 'df' not in st.session_state:
     df = pd.concat([sales_df, iris_df], ignore_index=True, sort=False).fillna(0)
     st.session_state.df = df
 
+# ✅ Exportable Report Generator
+if st.button("📝 Generate Full Report"):
+    df = st.session_state.df
+    report_sections = [
+        "# 📊 Powerdata.ai Automated Report",
+        f"## Shape
+- Rows: {df.shape[0]}
+- Columns: {df.shape[1]}",
+        f"## Columns
+- {', '.join(df.columns[:10])}",
+        "## Sample Preview
+" + df.head(5).to_markdown(index=False),
+        "## Summary Statistics
+" + df.describe(include='all').to_markdown()
+    ]
+    full_report = "
+
+".join(report_sections)
+    st.markdown(full_report)
+    st.download_button("📄 Download Report as TXT", full_report.encode(), file_name="powerdata_full_report.txt")
+
+    # PDF and Word export (basic text for now)
+    from io import BytesIO
+    from docx import Document
+    from fpdf import FPDF
+
+    # Word
+    doc = Document()
+    doc.add_heading("Powerdata.ai Report", 0)
+    doc.add_paragraph("Generated report summary:")
+    for section in report_sections:
+        doc.add_paragraph(section)
+    doc_io = BytesIO()
+    doc.save(doc_io)
+    doc_io.seek(0)
+    st.download_button("📄 Download Report as Word", doc_io, file_name="powerdata_report.docx")
+
+    # PDF
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_auto_page_break(auto=True, margin=15)
+    pdf.set_font("Arial", 'B', 16)
+    pdf.cell(0, 10, "Powerdata.ai Report", ln=True, align='C')
+    pdf.set_font("Arial", '', 12)
+    for section in report_sections:
+        pdf.multi_cell(0, 10, section)
+    pdf_io = BytesIO()
+    pdf.output(pdf_io)
+    pdf_io.seek(0)
+    st.download_button("📄 Download Report as PDF", pdf_io, file_name="powerdata_report.pdf")
+
 # ✅ Task selector
 task = st.selectbox("Choose a task", [
     "AI Chat with Data",
@@ -91,6 +142,39 @@ if st.checkbox("🧹 Auto-clean the dataset"):
 
     st.session_state.df = df_clean
     st.success("✅ Full cleaning complete: renamed cols, removed dups, filled nulls, trimmed, converted, dropped constants")
+
+# ✅ Data Analysis Workflow (Download → Clean → Explore → Report)
+if st.checkbox("📥 Run Full Data Analysis Workflow"):
+    st.write("### Step 1: Preview Data")
+    st.dataframe(st.session_state.df.head())
+
+    st.write("### Step 2: Auto-cleaning")
+    cleaned = st.session_state.df.copy()
+    cleaned.columns = [c.strip().replace(" ", "_").lower() for c in cleaned.columns]
+    cleaned = cleaned.drop_duplicates()
+    if cleaned.isnull().sum().sum() > 0:
+        cleaned = cleaned.fillna(cleaned.mode().iloc[0])
+    for col in cleaned.select_dtypes(include='object').columns:
+        cleaned[col] = cleaned[col].astype(str).str.strip()
+    st.session_state.df = cleaned
+    st.success("Cleaned data ready.")
+
+    st.write("### Step 3: Summary Statistics")
+    st.dataframe(cleaned.describe(include='all'))
+
+    st.write("### Step 4: Auto-generated Report")
+    report = f"""
+    ## 🧾 Auto Report
+    - Rows: {cleaned.shape[0]}
+    - Columns: {cleaned.shape[1]}
+    - Missing values: {cleaned.isnull().sum().sum()}
+    - Top columns: {cleaned.columns[:5].tolist()}
+    - Sample:
+    {cleaned.head(3).to_markdown(index=False)}
+    """
+    st.markdown(report)
+    st.download_button("📄 Download Report", report.encode("utf-8"), file_name="data_report.txt")
+
 
 # ✅ Task handlers
 if task == "AI Chat with Data":
@@ -201,11 +285,95 @@ elif task == "Descriptive Statistics":
 
 elif task == "Supervised Learning":
     st.write("## 🎯 Supervised Learning")
-    st.code("Train/test split, classification or regression model setup goes here")
+    from sklearn.model_selection import train_test_split
+    from sklearn.ensemble import RandomForestClassifier
+    from sklearn.metrics import accuracy_score, classification_report
+
+    df = st.session_state.df
+    cat_cols = df.select_dtypes(include='object').columns.tolist()
+    num_cols = df.select_dtypes(include='number').columns.tolist()
+
+    if len(num_cols) < 2:
+        st.warning("Need at least two numeric columns for classification")
+    else:
+        target = st.selectbox("🎯 Target (Categorical)", cat_cols)
+        features = st.multiselect("🔢 Features (Numeric)", num_cols, default=num_cols[:-1])
+
+        if features and target:
+            X = df[features]
+            y = df[target]
+            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+            clf = RandomForestClassifier()
+            clf.fit(X_train, y_train)
+            y_pred = clf.predict(X_test)
+
+            st.write("### ✅ Classification Report")
+            st.text(classification_report(y_test, y_pred))
+            st.write(f"Accuracy: {accuracy_score(y_test, y_pred):.2f}")
 
 elif task == "Unsupervised Learning":
     st.write("## 🧩 Unsupervised Learning")
-    st.code("Clustering, PCA, and dimensionality reduction here")
+    from sklearn.cluster import KMeans
+    from sklearn.decomposition import PCA
+    from sklearn.preprocessing import StandardScaler
+    from sklearn.metrics import silhouette_score
+
+    df = st.session_state.df
+    num_cols = df.select_dtypes(include='number').columns.tolist()
+
+    if len(num_cols) < 2:
+        st.warning("Need at least two numeric columns for clustering")
+    else:
+        scaled = StandardScaler().fit_transform(df[num_cols])
+        sil_scores_all = []
+        opt_k = 2
+        best_score = -1
+        for k in range(2, 11):
+            km = KMeans(n_clusters=k, random_state=42)
+            lbls = km.fit_predict(scaled)
+            score = silhouette_score(scaled, lbls)
+            sil_scores_all.append((k, score))
+            if score > best_score:
+                opt_k = k
+                best_score = score
+
+        sil_df = pd.DataFrame(sil_scores_all, columns=["k", "Silhouette Score"])
+        st.line_chart(sil_df.set_index("k"))
+
+        n_clusters = st.number_input("Suggested Optimal Clusters (auto-selected):", min_value=2, max_value=10, value=opt_k)
+
+opt_k = 2
+best_score = -1
+for k in range(2, 11):
+    km = KMeans(n_clusters=k, random_state=42)
+    lbls = km.fit_predict(scaled)
+    score = silhouette_score(scaled, lbls)
+    sil_scores_all.append((k, score))
+    if score > best_score:
+        opt_k = k
+        best_score = score
+
+sil_df = pd.DataFrame(sil_scores_all, columns=["k", "Silhouette Score"])
+st.line_chart(sil_df.set_index("k"))
+
+n_clusters = st.number_input("Suggested Optimal Clusters (auto-selected):", min_value=2, max_value=10, value=opt_k)
+
+        kmeans = KMeans(n_clusters=n_clusters, random_state=42)
+        labels = kmeans.fit_predict(scaled)
+
+        pca = PCA(n_components=2)
+        reduced = pca.fit_transform(scaled)
+        cluster_df = pd.DataFrame(reduced, columns=['PC1', 'PC2'])
+        cluster_df['Cluster'] = labels
+
+        sil_score = silhouette_score(scaled, labels)
+        st.write(f"Silhouette Score: {sil_score:.2f}")
+
+        st.write("### 📊 Cluster Visualization (PCA)")
+
+        
+        st.scatter_chart(cluster_df, x='PC1', y='PC2', color='Cluster')
 
 elif task == "Semi-Supervised Learning":
     st.write("## 🧠 Semi-Supervised Learning")
@@ -216,5 +384,31 @@ elif task == "Reinforcement Learning":
     st.code("Simulation environment, rewards, and feedback loop logic here")
 
 elif task == "Machine Learning":
-    st.write("## 🤖 ML Module")
-    st.write("Combine supervised and unsupervised model workflows here.")
+    st.write("## 🤖 Machine Learning Workflow")
+    st.write("Select features and target to build a simple model:")
+    df = st.session_state.df
+    num_cols = df.select_dtypes(include=['number']).columns.tolist()
+
+    if len(num_cols) < 2:
+        st.warning("Need at least two numeric columns to run ML")
+    else:
+        target = st.selectbox("🎯 Target Variable", num_cols)
+        features = st.multiselect("🔢 Features", [col for col in num_cols if col != target], default=[col for col in num_cols if col != target])
+
+        if features and target:
+            from sklearn.model_selection import train_test_split
+            from sklearn.linear_model import LinearRegression
+            from sklearn.metrics import mean_squared_error, r2_score
+
+            X = df[features]
+            y = df[target]
+            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+            model = LinearRegression()
+            model.fit(X_train, y_train)
+            y_pred = model.predict(X_test)
+
+            st.write("### 🧠 Model Evaluation")
+            st.write(f"R² Score: {r2_score(y_test, y_pred):.2f}")
+            st.write(f"MSE: {mean_squared_error(y_test, y_pred):.2f}")
+            st.line_chart(pd.DataFrame({"Actual": y_test.values, "Predicted": y_pred}).reset_index(drop=True))
