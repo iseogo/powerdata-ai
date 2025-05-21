@@ -47,6 +47,14 @@ if st.button("📝 Generate Full Report"):
         f"""## Summary Statistics
 {df.describe(include='all').to_markdown()}"""
     ]}
+- Columns: {df.shape[1]}""",
+        f"""## Columns
+- {', '.join(df.columns[:10])}""",
+        f"""## Sample Preview
+{df.head(5).to_markdown(index=False)}""",
+        f"""## Summary Statistics
+{df.describe(include='all').to_markdown()}"""
+    ]}
 - Columns: {df.shape[1]}",
         f"## Columns
 - {', '.join(df.columns[:10])}",
