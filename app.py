@@ -143,36 +143,11 @@ if task == "AI Chat with Data":
                     st.markdown(f"**Answer:**
 {reply}")
             except Exception as e:
-                st.error(⚠️ Error: " + str(e))
+                st.error("⚠️ Error: " + str(e))
 
-user_prompt = st.text_area("Type your question here:", "What does the data say about sales?", height=80)
 
-st.markdown("""
-<script>
-function startDictation() {
-    if (window.hasOwnProperty('webkitSpeechRecognition')) {
-        var recognition = new webkitSpeechRecognition();
-        recognition.continuous = false;
-        recognition.interimResults = false;
-        recognition.lang = "en-US";
-        recognition.start();
 
-        recognition.onresult = function(e) {
-            const input = document.querySelector('textarea');
-            if (input) {
-                input.value = e.results[0][0].transcript;
-                input.dispatchEvent(new Event('input', { bubbles: true }));
-            }
-            recognition.stop();
-        };
 
-        recognition.onerror = function(e) {
-            recognition.stop();
-        }
-    }
-}
-</script>
-<button onclick="startDictation()">🎤 Click to Speak</button>""", unsafe_allow_html=True)
 """, unsafe_allow_html=True)
 """, unsafe_allow_html=True)
 
