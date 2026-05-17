@@ -1,5 +1,5 @@
 """
-Power Data AI - Enhanced Streamlit Application
+Power Data AI - Enhanced Streamlit Application (Updated for OpenAI 1.0+)
 By Issaka Seogo | Seogo Global Impact
 
 Empowering data-driven decisions through intelligent analysis.
@@ -11,7 +11,7 @@ import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
 from io import BytesIO
-import openai
+from openai import OpenAI
 import json
 import os
 from datetime import datetime
@@ -80,11 +80,6 @@ st.markdown(f"""
         transform: scale(1.05);
     }}
     
-    /* Sidebar styling */
-    .css-1d391kg {{
-        background-color: {BRAND_COLORS['light_blue']};
-    }}
-    
     /* Metric cards */
     .metric-card {{
         background-color: {BRAND_COLORS['light_blue']};
@@ -102,14 +97,6 @@ st.markdown(f"""
         font-style: italic;
         border-top: 2px solid {BRAND_COLORS['gold']};
         margin-top: 3rem;
-    }}
-    
-    /* Chart containers */
-    .plot-container {{
-        background-color: white;
-        padding: 1rem;
-        border-radius: 10px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }}
 </style>
 """, unsafe_allow_html=True)
@@ -173,7 +160,8 @@ def analyze_with_ai(df, question, mode='quick'):
         if not api_key:
             return "⚠️ OpenAI API key not configured. Please add it to Streamlit secrets."
         
-        openai.api_key = api_key
+        # Initialize OpenAI client
+        client = OpenAI(api_key=api_key)
         
         # Prepare data context
         data_summary = {
@@ -214,7 +202,8 @@ Be warm, intelligent, and empowering."""
 
 User query: {question}"""
         
-        response = openai.ChatCompletion.create(
+        # Use new OpenAI API format
+        response = client.chat.completions.create(
             model="gpt-4",
             messages=[
                 {"role": "system", "content": "You are Power Data AI, a warm and intelligent data coach who helps people make confident, data-informed decisions. You explain concepts simply and always provide actionable insights."},
