@@ -321,7 +321,7 @@ button[data-testid="baseButton-secondaryFormSubmit"]:hover {
     color: white !important;
 }
 
-/* ── Pill buttons (category) ── */
+/* ── Inactive pill (secondary) ── */
 [data-testid="baseButton-secondary"] {
     background: white !important;
     border: 1.5px solid #E0E0E0 !important;
@@ -338,14 +338,20 @@ button[data-testid="baseButton-secondaryFormSubmit"]:hover {
     color: #003399 !important;
     background: #EEF2FF !important;
 }
+
+/* ── Active pill + CTA buttons (primary) — solid blue ── */
 [data-testid="baseButton-primary"] {
-    background: #EEF2FF !important;
-    border: 2px solid #003399 !important;
-    color: #003399 !important;
-    border-radius: 20px !important;
-    font-size: 0.88rem !important;
-    font-weight: 700 !important;
-    padding: 0.38rem 0.85rem !important;
+    background: #003399 !important;
+    border: none !important;
+    color: white !important;
+    border-radius: 8px !important;
+    font-size: 0.9rem !important;
+    font-weight: 600 !important;
+    padding: 0.45rem 1.1rem !important;
+}
+[data-testid="baseButton-primary"]:hover {
+    background: #0022aa !important;
+    color: white !important;
 }
 
 /* ── Example prompt buttons ── */
@@ -365,26 +371,6 @@ button[data-testid="baseButton-secondaryFormSubmit"]:hover {
 .pda-examples .stButton button:hover {
     color: #003399 !important;
     background: transparent !important;
-}
-
-/* ── Back + template buttons ── */
-.pda-back .stButton button {
-    background: #EEF2FF !important;
-    color: #003399 !important;
-    border: 1px solid #C5D3FF !important;
-    border-radius: 8px !important;
-    font-weight: 600 !important;
-}
-.pda-template-btn .stButton button {
-    background: #003399 !important;
-    color: white !important;
-    border: none !important;
-    border-radius: 10px !important;
-    font-weight: 600 !important;
-    font-size: 0.95rem !important;
-}
-.pda-template-btn .stButton button:hover {
-    background: #0022aa !important;
 }
 
 /* ── Analysis mode radio ── */
@@ -568,9 +554,7 @@ def _show_template_header():
     )
     col_back, col_title = st.columns([1, 5])
     with col_back:
-        st.markdown('<div class="pda-back">', unsafe_allow_html=True)
         st.button("← Back", on_click=_go_back)
-        st.markdown("</div>", unsafe_allow_html=True)
     with col_title:
         st.markdown(
             f"<h2 style='margin:0;padding-top:0.2rem;color:#111;font-size:1.4rem;'>"
@@ -615,17 +599,15 @@ def run_document_template():
                 ],
             )
 
+            st.markdown("---")
+
             if "Quick Summary" in mode:
-                st.markdown('<div class="pda-template-btn">', unsafe_allow_html=True)
                 if st.button("Generate Quick Summary →", type="primary"):
                     _doc_quick(text)
-                st.markdown("</div>", unsafe_allow_html=True)
 
             elif "Executive Summary" in mode:
-                st.markdown('<div class="pda-template-btn">', unsafe_allow_html=True)
                 if st.button("Generate Executive Summary →", type="primary"):
                     _doc_executive(text)
-                st.markdown("</div>", unsafe_allow_html=True)
 
             elif "Specific Sections" in mode:
                 st.markdown("**Select what to extract:**")
@@ -638,23 +620,19 @@ def run_document_template():
                     ext_financial = st.checkbox("💰 Financial Information")
                     ext_dates = st.checkbox("📅 Important Dates")
                     ext_people = st.checkbox("👥 People Mentioned")
-                st.markdown('<div class="pda-template-btn">', unsafe_allow_html=True)
                 if st.button("Extract Selected →", type="primary"):
                     _doc_modular(
                         text, ext_summary, ext_actions, ext_decisions,
                         ext_financial, ext_dates, ext_people,
                     )
-                st.markdown("</div>", unsafe_allow_html=True)
 
             elif "Custom Question" in mode:
                 question = st.text_area(
                     "Your question about this document:",
                     placeholder="e.g., What are the main action items? What budget is mentioned?",
                 )
-                st.markdown('<div class="pda-template-btn">', unsafe_allow_html=True)
                 if st.button("Get Answer →", type="primary") and question:
                     _doc_custom(text, question)
-                st.markdown("</div>", unsafe_allow_html=True)
         else:
             st.error("❌ Could not extract text. Please try another file.")
     else:
@@ -695,27 +673,24 @@ def run_financial_template():
             ],
         )
 
-        st.markdown('<div class="pda-template-btn">', unsafe_allow_html=True)
-        if st.button("Analyze →", type="primary"):
-            if "Quick Ratios" in mode:
-                _fin_quick(df)
-            elif "Full Financial" in mode:
-                _fin_full(df)
-            elif "Specific Ratios" in mode:
-                _fin_specific(df)
-            else:
-                st.info("Enter your question below and click Analyze again.")
-        st.markdown("</div>", unsafe_allow_html=True)
+        st.markdown("---")
 
-        if "Custom" in mode:
+        if "Quick Ratios" in mode:
+            _fin_quick(df)
+
+        elif "Full Financial" in mode:
+            _fin_full(df)
+
+        elif "Specific Ratios" in mode:
+            _fin_specific(df)
+
+        elif "Custom" in mode:
             q = st.text_area(
                 "Your financial question:",
                 placeholder="e.g., What is my current ratio? Which quarters were most profitable?",
             )
-            st.markdown('<div class="pda-template-btn">', unsafe_allow_html=True)
             if st.button("Get Financial Answer →", type="primary") and q:
                 _fin_custom(df, q)
-            st.markdown("</div>", unsafe_allow_html=True)
     else:
         st.info("👆 Upload financial statements to begin")
 
@@ -767,20 +742,16 @@ def run_business_template():
             ],
         )
 
+        st.markdown("---")
+
         if "Quick Health Check" in mode:
-            st.markdown('<div class="pda-template-btn">', unsafe_allow_html=True)
-            if st.button("Run Quick Check →", type="primary"):
-                _biz_quick(df)
-            st.markdown("</div>", unsafe_allow_html=True)
+            _biz_quick(df)
 
         elif "Full Business Report" in mode:
-            st.markdown('<div class="pda-template-btn">', unsafe_allow_html=True)
-            if st.button("Generate Full Report →", type="primary"):
-                _biz_full(df)
-            st.markdown("</div>", unsafe_allow_html=True)
+            _biz_full(df)
 
         elif "Specific Analysis" in mode:
-            st.markdown("**Choose areas to analyze:**")
+            st.markdown("**Choose areas to analyze (results update instantly):**")
             col1, col2 = st.columns(2)
             with col1:
                 a_fin = st.checkbox("💰 Financial Performance")
@@ -790,20 +761,16 @@ def run_business_template():
                 a_risk = st.checkbox("⚠️ Risk Assessment")
                 a_cust = st.checkbox("👥 Customer Insights")
                 a_comp = st.checkbox("🏆 Competitive Position")
-            st.markdown('<div class="pda-template-btn">', unsafe_allow_html=True)
-            if st.button("Analyze Selected →", type="primary"):
+            if any([a_fin, a_ops, a_growth, a_risk, a_cust, a_comp]):
                 _biz_modular(df, a_fin, a_ops, a_growth, a_risk, a_cust, a_comp)
-            st.markdown("</div>", unsafe_allow_html=True)
 
         elif "Custom Question" in mode:
             q = st.text_area(
                 "Your business question:",
                 placeholder="e.g., Which routes are most profitable? What's driving my costs?",
             )
-            st.markdown('<div class="pda-template-btn">', unsafe_allow_html=True)
             if st.button("Get Answer →", type="primary") and q:
                 _biz_custom(df, q)
-            st.markdown("</div>", unsafe_allow_html=True)
     else:
         st.info("👆 Upload data or load the sample to begin")
 
@@ -840,27 +807,21 @@ def run_slides_template():
                 ],
             )
 
+            st.markdown("---")
+
             if "Quick Slide" in mode:
-                st.markdown('<div class="pda-template-btn">', unsafe_allow_html=True)
                 if st.button("Summarize Deck →", type="primary"):
                     _slides_quick(text)
-                st.markdown("</div>", unsafe_allow_html=True)
             elif "Full Deck" in mode:
-                st.markdown('<div class="pda-template-btn">', unsafe_allow_html=True)
-                if st.button("Full Analysis →", type="primary"):
+                if st.button("Full Deck Analysis →", type="primary"):
                     _slides_full(text)
-                st.markdown("</div>", unsafe_allow_html=True)
             elif "Extract Key Points" in mode:
-                st.markdown('<div class="pda-template-btn">', unsafe_allow_html=True)
                 if st.button("Extract Key Points →", type="primary"):
                     _slides_keypoints(text)
-                st.markdown("</div>", unsafe_allow_html=True)
             elif "Custom Question" in mode:
                 q = st.text_area("Your question about this presentation:")
-                st.markdown('<div class="pda-template-btn">', unsafe_allow_html=True)
                 if st.button("Get Answer →", type="primary") and q:
                     _doc_custom(text, q)
-                st.markdown("</div>", unsafe_allow_html=True)
         else:
             st.error("❌ Could not extract text. Please try another file.")
     else:
@@ -902,10 +863,8 @@ def run_dashboard_template():
             ],
         )
 
-        st.markdown('<div class="pda-template-btn">', unsafe_allow_html=True)
         if st.button("Build Dashboard →", type="primary"):
             _build_dashboard(df, dashboard_type)
-        st.markdown("</div>", unsafe_allow_html=True)
     else:
         st.info("👆 Upload data to build your dashboard")
 
@@ -943,10 +902,8 @@ def run_tracker_template():
         )
         st.success(f"✅ Data loaded — {len(df)} rows")
 
-    st.markdown('<div class="pda-template-btn">', unsafe_allow_html=True)
     if st.button("Generate Tracker →", type="primary"):
         _build_tracker(tracker_type, df)
-    st.markdown("</div>", unsafe_allow_html=True)
 
 
 # ──────────────────────────────────────────
@@ -993,10 +950,8 @@ def run_report_template():
             df_or_text = _extract_text(uploaded_file)
             st.success("✅ Document loaded")
 
-    st.markdown('<div class="pda-template-btn">', unsafe_allow_html=True)
     if st.button("Generate Report →", type="primary"):
         _build_report(report_type, df_or_text, additional_context)
-    st.markdown("</div>", unsafe_allow_html=True)
 
 
 # ──────────────────────────────────────────
@@ -1024,48 +979,50 @@ def run_feedback_template():
             ["⚡ Quick Insights", "📊 Full Analysis", "🎯 Specific Metrics", "💬 Custom Question"],
         )
 
-        st.markdown('<div class="pda-template-btn">', unsafe_allow_html=True)
-        if st.button("Analyze →", type="primary"):
-            if "Quick" in mode:
-                st.markdown("### 📊 Quick Insights")
-                c1, c2, c3 = st.columns(3)
-                c1.metric("Overall Satisfaction", "4.6 / 5.0", "+0.3")
-                c2.metric("NPS Score", "68", "+12")
-                c3.metric("Response Rate", "74%", "+5%")
-                st.markdown("**Top theme:** Quality of service (89 % positive)")
-            elif "Full" in mode:
-                st.markdown("### 📊 Complete Feedback Analysis")
-                st.markdown("#### Sentiment Breakdown")
-                _survey_sentiment_chart(df)
-                st.markdown("#### Top Themes")
-                st.markdown(
-                    "- Service quality · Delivery speed · Pricing · Support responsiveness"
-                )
-                st.markdown("#### Recommendations")
-                st.markdown(
-                    "1. Improve response time for support tickets  \n"
-                    "2. Review pricing structure for SMB segment  \n"
-                    "3. Expand self-service documentation"
-                )
-            elif "Specific" in mode:
-                st.markdown("#### NPS Calculation")
-                st.metric("Net Promoter Score", "68")
-                st.markdown("#### Sentiment Distribution")
-                _survey_sentiment_chart(df)
-            else:
-                st.info("Enter your question below and re-click Analyze.")
-        st.markdown("</div>", unsafe_allow_html=True)
+        st.markdown("---")
 
-        if "Custom" in mode:
+        if "Quick" in mode:
+            st.markdown("### 📊 Quick Insights")
+            c1, c2, c3 = st.columns(3)
+            c1.metric("Overall Satisfaction", "4.6 / 5.0", "+0.3")
+            c2.metric("NPS Score", "68", "+12")
+            c3.metric("Response Rate", "74%", "+5%")
+            st.markdown("**Top theme:** Quality of service (89 % positive)")
+
+        elif "Full" in mode:
+            st.markdown("### 📊 Complete Feedback Analysis")
+            st.markdown("#### Sentiment Breakdown")
+            _survey_sentiment_chart(df)
+            st.markdown("#### Top Themes")
+            st.markdown(
+                "- Service quality · Delivery speed · Pricing · Support responsiveness"
+            )
+            st.markdown("#### Recommendations")
+            st.markdown(
+                "1. Improve response time for support tickets  \n"
+                "2. Review pricing structure for SMB segment  \n"
+                "3. Expand self-service documentation"
+            )
+
+        elif "Specific" in mode:
+            st.markdown("#### NPS Calculation")
+            st.metric("Net Promoter Score", "68")
+            st.markdown("#### Sentiment Distribution")
+            _survey_sentiment_chart(df)
+
+        elif "Custom" in mode:
             q = st.text_area(
                 "Your question about the survey data:",
                 placeholder="e.g., What are the most common complaints? Which segment scores lowest?",
             )
-            st.markdown('<div class="pda-template-btn">', unsafe_allow_html=True)
             if st.button("Get Survey Answer →", type="primary") and q:
-                st.markdown(f"### 💡 Answer")
-                st.markdown(f"*Analysis of '{q}' from the uploaded survey data would be generated here by the AI model.*")
-            st.markdown("</div>", unsafe_allow_html=True)
+                with st.spinner("Analyzing…"):
+                    result = _ai_call(
+                        f"Answer this question about survey data with {len(df)} responses:\n"
+                        f"Q: {q}\nData columns: {list(df.columns)}"
+                    )
+                st.markdown("### 💡 Answer")
+                st.markdown(result)
     else:
         st.info("👆 Upload survey data to begin")
 
@@ -1101,11 +1058,25 @@ def _pdf_text(file):
 
 def _ai_client():
     key = os.getenv("OPENAI_API_KEY") or st.secrets.get("OPENAI_API_KEY", "")
-    return OpenAI(api_key=key)
+    return OpenAI(api_key=key), bool(key)
 
 
 def _ai_call(prompt, max_tokens=500):
-    client = _ai_client()
+    client, has_key = _ai_client()
+    if not has_key:
+        st.warning(
+            "⚠️ **No API key configured.**  "
+            "Add `OPENAI_API_KEY` to your environment or `.streamlit/secrets.toml` to enable AI analysis.  \n"
+            "Example output shown below:",
+            icon="🔑",
+        )
+        return (
+            "**[Demo output — AI not connected]**\n\n"
+            "- Key finding 1: Strong performance in core metrics\n"
+            "- Key finding 2: Opportunity identified in growth segment\n"
+            "- Key finding 3: Risk factor noted in operational efficiency\n\n"
+            "*Configure `OPENAI_API_KEY` to see real AI-generated analysis.*"
+        )
     resp = client.chat.completions.create(
         model="gpt-4",
         messages=[{"role": "user", "content": prompt}],
